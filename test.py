@@ -45,7 +45,8 @@ def get_opt():
     parser.add_argument('--result_dir', type=str,
                         default='result', help='save result infos')
 
-    parser.add_argument('--checkpoint', type=str, default='checkpoints/GMM/gmm_final.pth', help='model checkpoint for test')
+    parser.add_argument('--checkpoint', type=str, default='checkpoints/GMM/gmm_final.pth',
+                        help='model checkpoint for test')
     # parser.add_argument('--checkpoint', type=str, default='checkpoints/TOM/tom_final.pth', help='model checkpoint for test')
 
     parser.add_argument("--display_count", type=int, default=1)
@@ -57,7 +58,7 @@ def get_opt():
 
 
 def test_gmm(opt, test_loader, model, board):
-    model.cuda()
+    # model.cuda()
     model.eval()
 
     base_name = os.path.basename(opt.checkpoint)
@@ -85,15 +86,24 @@ def test_gmm(opt, test_loader, model, board):
 
         c_names = inputs['c_name']
         im_names = inputs['im_name']
-        im = inputs['image'].cuda()
-        im_pose = inputs['pose_image'].cuda()
-        im_h = inputs['head'].cuda()
-        shape = inputs['shape'].cuda()
-        agnostic = inputs['agnostic'].cuda()
-        c = inputs['cloth'].cuda()
-        cm = inputs['cloth_mask'].cuda()
-        im_c = inputs['parse_cloth'].cuda()
-        im_g = inputs['grid_image'].cuda()
+        im = inputs['image']
+        # im = inputs['image'].cuda()
+        im_pose = inputs['pose_image']
+        # im_pose = inputs['pose_image'].cuda()
+        im_h = inputs['head']
+        # im_h = inputs['head'].cuda()
+        shape = inputs['shape']
+        # shape = inputs['shape'].cuda()
+        agnostic = inputs['agnostic']
+        # agnostic = inputs['agnostic'].cuda()
+        c = inputs['cloth']
+        # c = inputs['cloth'].cuda()
+        cm = inputs['cloth_mask']
+        # cm = inputs['cloth_mask'].cuda()
+        im_c = inputs['parse_cloth']
+        # im_c = inputs['parse_cloth'].cuda()
+        im_g = inputs['grid_image']
+        # im_g = inputs['grid_image'].cuda()
         shape_ori = inputs['shape_ori']  # original body shape without blurring
 
         grid, theta = model(agnostic, cm)
@@ -104,7 +114,7 @@ def test_gmm(opt, test_loader, model, board):
 
         visuals = [[im_h, shape, im_pose],
                    [c, warped_cloth, im_c],
-                   [warped_grid, (warped_cloth+im)*0.5, im]]
+                   [warped_grid, (warped_cloth + im) * 0.5, im]]
 
         # save_images(warped_cloth, c_names, warp_cloth_dir)
         # save_images(warped_mask*2-1, c_names, warp_mask_dir)
@@ -115,14 +125,14 @@ def test_gmm(opt, test_loader, model, board):
         save_images(warped_grid, im_names, warped_grid_dir)
         save_images(overlay, im_names, overlayed_TPS_dir)
 
-        if (step+1) % opt.display_count == 0:
-            board_add_images(board, 'combine', visuals, step+1)
+        if (step + 1) % opt.display_count == 0:
+            board_add_images(board, 'combine', visuals, step + 1)
             t = time.time() - iter_start_time
-            print('step: %8d, time: %.3f' % (step+1, t), flush=True)
+            print('step: %8d, time: %.3f' % (step + 1, t), flush=True)
 
 
 def test_tom(opt, test_loader, model, board):
-    model.cuda()
+    # model.cuda()
     model.eval()
 
     base_name = os.path.basename(opt.checkpoint)
@@ -154,14 +164,18 @@ def test_tom(opt, test_loader, model, board):
         iter_start_time = time.time()
 
         im_names = inputs['im_name']
-        im = inputs['image'].cuda()
+        im = inputs['image']
+        # im = inputs['image'].cuda()
         im_pose = inputs['pose_image']
         im_h = inputs['head']
         shape = inputs['shape']
 
-        agnostic = inputs['agnostic'].cuda()
-        c = inputs['cloth'].cuda()
-        cm = inputs['cloth_mask'].cuda()
+        agnostic = inputs['agnostic']
+        # agnostic = inputs['agnostic'].cuda()
+        c = inputs['cloth']
+        # c = inputs['cloth'].cuda()
+        cm = inputs['cloth_mask']
+        # cm = inputs['cloth_mask'].cuda()
 
         # outputs = model(torch.cat([agnostic, c], 1))  # CP-VTON
         outputs = model(torch.cat([agnostic, c, cm], 1))  # CP-VTON+
@@ -171,7 +185,7 @@ def test_tom(opt, test_loader, model, board):
         p_tryon = c * m_composite + p_rendered * (1 - m_composite)
 
         visuals = [[im_h, shape, im_pose],
-                   [c, 2*cm-1, m_composite],
+                   [c, 2 * cm - 1, m_composite],
                    [p_rendered, p_tryon, im]]
 
         save_images(p_tryon, im_names, try_on_dir)
@@ -181,10 +195,10 @@ def test_tom(opt, test_loader, model, board):
         save_images(m_composite, im_names, m_composite_dir)
         save_images(p_rendered, im_names, p_rendered_dir)  # For test data
 
-        if (step+1) % opt.display_count == 0:
-            board_add_images(board, 'combine', visuals, step+1)
+        if (step + 1) % opt.display_count == 0:
+            board_add_images(board, 'combine', visuals, step + 1)
             t = time.time() - iter_start_time
-            print('step: %8d, time: %.3f' % (step+1, t), flush=True)
+            print('step: %8d, time: %.3f' % (step + 1, t), flush=True)
 
 
 def main():
